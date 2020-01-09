@@ -1,5 +1,6 @@
 use async_std::task;
 use std::io;
+use surf;
 
 // Return an HTML string of the table of contents
 pub fn get_html(url: &str) -> String {

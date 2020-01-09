@@ -13,12 +13,12 @@ pub fn request(url: &str) {
         "mangairo.com" => book::Scraper {
             chapter_selector: "",
             image_selector: "",
-            chapter_sort: book::Sorting::Acceding,
+            chapter_sort: book::Sorting::Ascending,
         },
         "manganelo.com" => book::Scraper {
             chapter_selector: "",
             image_selector: "",
-            chapter_sort: book::Sorting::Acceding,
+            chapter_sort: book::Sorting::Ascending,
         },
         _ => {
             panic!("Website is not supported");

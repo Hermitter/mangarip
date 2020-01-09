@@ -1,10 +1,10 @@
 use super::web_utils;
 use kuchiki;
 use kuchiki::traits::*;
-use surf;
 
+#[derive(PartialEq)]
 pub enum Sorting {
-    Acceding,
+    Ascending,
     Descending,
 }
 
@@ -40,6 +40,11 @@ impl<'a> Scraper<'a> {
             chapters.push(Chapter {
                 image: href.to_string(),
             });
+        }
+
+        // convert descending list to ascending
+        if self.chapter_sort == Sorting::Descending {
+            &mut chapters.reverse();
         }
 
         // store each image link for each chapter
