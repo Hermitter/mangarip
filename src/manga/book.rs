@@ -8,23 +8,22 @@ pub enum Sorting {
     Descending,
 }
 
-struct Chapter {
-    image: String,
+pub struct Chapter {
+    pub image_url: String,
+    pub image_bytes: Vec<u8>,
 }
 
 // All the information needed to support a new website
 pub struct Scraper<'a> {
     // CSS selector for each chapter in table of contents
     pub chapter_selector: &'a str,
-
     pub chapter_sort: Sorting,
-
     // CSS selector for each chapter's image
     pub image_selector: &'a str,
 }
 
 impl<'a> Scraper<'a> {
-    pub fn scrape(&self, url: &str) {
+    pub fn scrape(&self, url: &str) -> Vec<Chapter> {
         // links for each chapter
         let mut chapters = Vec::<Chapter>::new();
 
@@ -38,7 +37,8 @@ impl<'a> Scraper<'a> {
             let href = a.get("href").unwrap();
 
             chapters.push(Chapter {
-                image: href.to_string(),
+                image_url: href.to_string(),
+                image_bytes: Vec::new(),
             });
         }
 
@@ -47,11 +47,11 @@ impl<'a> Scraper<'a> {
             &mut chapters.reverse();
         }
 
-        // store each image link for each chapter
-        for mut chapter in chapters {
-            web_utils::get_html(&chapter.image);
+        // store image link for each chapter
+        for mut chapter in &mut chapters {
+            web_utils::get_html(&chapter.image_url);
 
-            let document = kuchiki::parse_html().one(web_utils::get_html(&chapter.image));
+            let document = kuchiki::parse_html().one(web_utils::get_html(&chapter.image_url));
 
             // store image from each chapter
             for css_match in document.select(self.image_selector).unwrap() {
@@ -59,9 +59,10 @@ impl<'a> Scraper<'a> {
                 let img = node.as_element().unwrap().attributes.borrow();
                 let src = img.get("src").unwrap();
 
-                // chapter.image = src.to_string();
-                println!("{}", src);
+                chapter.image_bytes = web_utils::get_bytes(src).unwrap();
             }
         }
+
+        chapters
     }
 }
