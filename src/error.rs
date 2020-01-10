@@ -2,8 +2,10 @@ use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum ScrapeError {
+    UnreachableHost(String),
     UnsupportedHost(String),
-    UnreadableHTML(String),
+    UnreadableHtml(String),
+    BadCssSelector(String),
     Non200Status(String, i32),
 }
 
@@ -24,10 +26,12 @@ impl fmt::Display for ScrapeError {
 }
 
 // Result<Select<Elements<Descendants>>
-// impl From<DieselError> for Error {
-//     fn from(e: DieselError) -> Self {
+// impl From<std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>>
+//     for Error
+// {
+//     fn from(e: <std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>>) -> Self {
 //         match e {
-//             DieselError::NotFound => Error::NotFound,
+//             <std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>> => ScrapeError::UnreadableHtml,
 //             _ => Error::InternalServerError,
 //         }
 //     }

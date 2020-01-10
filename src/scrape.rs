@@ -2,13 +2,14 @@ use crate::{error, host, web_util};
 use kuchiki;
 use kuchiki::traits::*;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Sorting {
     Ascending,
     Descending,
 }
 
 // All the information needed to support a new website
+#[derive(Debug)]
 pub struct Scraper<'a> {
     pub chapter_sort: Sorting,
     // each chapter href in table of contents
@@ -17,6 +18,13 @@ pub struct Scraper<'a> {
     pub image_css_selector: &'a str,
     pub url: &'a str,
 }
+
+// (NOT IMPLEMENTED) A chapter's title and URL that contains each image
+// #[derive(Debug)]
+// pub struct Chapter<'a> {
+//     pub title: &'a str,
+//     pub url: &'a str,
+// }
 
 impl<'a> Scraper<'a> {
     // Check if host is supported and return a Scrape with host's configuration
@@ -30,12 +38,12 @@ impl<'a> Scraper<'a> {
 
         // download table of contents HTML
         let document = kuchiki::parse_html()
-            .one(web_util::get_html(self.url))
+            .one(web_util::get_html(self.url)?)
             .select(self.chapter_css_selector);
 
         // check if HTML can be parsed
         if !document.is_ok() {
-            return Err(error::ScrapeError::UnreadableHTML(self.url.to_string()));
+            return Err(error::ScrapeError::UnreadableHtml(self.url.to_string()));
         }
 
         // store link for each chapter
@@ -55,25 +63,25 @@ impl<'a> Scraper<'a> {
         Ok(chapters)
     }
 
-    // pub fn get_images() {
-    //     // store image link for each chapter
-    //     let mut result = Vec::<Vec<u8>>::new();
+    pub fn get_images() {
+        // store image link for each chapter
+        let mut result = Vec::<Vec<u8>>::new();
 
-    //     for mut chapter_url in &mut chapters {
-    //         web_util::get_html(&chapter_url);
+        //     for mut chapter_url in &mut chapters {
+        //         web_util::get_html(&chapter_url);
 
-    //         let document = kuchiki::parse_html().one(web_util::get_html(&chapter_url));
+        //         let document = kuchiki::parse_html().one(web_util::get_html(&chapter_url));
 
-    //         // store image from each chapter
-    //         for css_match in document.select(self.image_selector).unwrap() {
-    //             let node = css_match.as_node();
-    //             let img = node.as_element().unwrap().attributes.borrow();
-    //             let src = img.get("src").unwrap();
+        //         // store image from each chapter
+        //         for css_match in document.select(self.image_selector).unwrap() {
+        //             let node = css_match.as_node();
+        //             let img = node.as_element().unwrap().attributes.borrow();
+        //             let src = img.get("src").unwrap();
 
-    //             result.push(web_util::get_bytes(src).unwrap());
-    //         }
-    //     }
+        //             result.push(web_util::get_bytes(src).unwrap());
+        //         }
+        //     }
 
-    //     result
-    // }
+        //     result
+    }
 }

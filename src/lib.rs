@@ -25,6 +25,6 @@ mod tests {
 
         // println!("{:?}", chapters);
 
-        assert_eq!(1, 1);
+        assert_eq!(true, true);
     }
 }
