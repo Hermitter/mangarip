@@ -3,16 +3,21 @@ use async_std::task;
 use std::io;
 use surf;
 
-// Return an HTML string of the table of contents
+// Return an HTML string of the table of contents page
 pub fn get_html(url: &str) -> Result<String, ScrapeError> {
     task::block_on(async {
-        let mut reader = surf::get(url).await.expect("Failed to fetch URL");
-
-        if reader.status() != 200 {
-            panic!("Website response was not OK");
+        if let Ok(mut reader) = surf::get(url).await {
+            if reader.status() != 200 {
+                return Err(ScrapeError::Non200Status {
+                    url,
+                    code: reader.status().as_u16(),
+                });
+            }
+            if let Ok(html) = reader.body_string().await {
+                return Ok(html);
+            }
         }
-
-        Ok(reader.body_string().await.expect("Failed in parsing URL"))
+        return Err(ScrapeError::UnreadableHtml { url });
     })
 }
 

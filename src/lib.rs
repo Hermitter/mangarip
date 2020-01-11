@@ -15,9 +15,9 @@ mod tests {
         println!("HELOOOOOOOO");
 
         let scraper = Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
-        let chapters = scraper.get_chapters();
+        // let chapters = scraper.get_chapters();
 
-        println!("{:?}", chapters);
+        // println!("{:?}", chapters);
 
         // let scraper = extract::request("https://mangakakalot.com/manga/pj919819");
         // let chapters = scraper.get_chapters();

@@ -1,6 +1,12 @@
-use crate::scrape::{Scraper, Sorting};
+use crate::scrape::Scraper;
 use crate::ScrapeError;
 use url::Url;
+
+#[derive(PartialEq, Debug)]
+pub enum Sorting {
+    Ascending,
+    Descending,
+}
 
 pub fn find(url: &str) -> Result<Scraper, ScrapeError> {
     match Url::parse(url).unwrap().host_str().unwrap() {
@@ -22,6 +28,6 @@ pub fn find(url: &str) -> Result<Scraper, ScrapeError> {
             chapter_sort: Sorting::Ascending,
             url: url,
         }),
-        _ => Err(ScrapeError::UnsupportedHost(url.to_string())),
+        _ => Err(ScrapeError::UnsupportedHost { url }),
     }
 }

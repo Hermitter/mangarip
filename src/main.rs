@@ -18,7 +18,8 @@ fn main() {
     let args = Cli::from_args();
 
     let scraper = mangarip::Scraper::from(&args.url).unwrap();
-    let chapters = scraper.get_chapters();
+    let chapters = mangarip::Fetch::chapter_urls(&scraper);
+
     println!("{:?}", chapters);
 
     // println!("{}", mangarip::X);

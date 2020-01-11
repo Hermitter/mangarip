@@ -1,23 +1,32 @@
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
-pub enum ScrapeError {
-    UnreachableHost(String),
-    UnsupportedHost(String),
-    UnreadableHtml(String),
-    BadCssSelector(String),
-    Non200Status(String, i32),
+pub enum ScrapeError<'a> {
+    UnreachableHost { url: &'a str },
+    UnsupportedHost { url: &'a str },
+    UnreadableHtml { url: &'a str },
+    CssNotFound { url: &'a str, selector: &'a str },
+    Non200Status { url: &'a str, code: u16 },
 }
 
-impl Error for ScrapeError {}
+impl<'a> Error for ScrapeError<'a> {}
 
-impl fmt::Display for ScrapeError {
+impl<'a> fmt::Display for ScrapeError<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ScrapeError::UnsupportedHost(ref url) => {
-                write!(f, "Cannot scrape unsupported URL: {} ", url)
+            ScrapeError::UnreachableHost { ref url } => {
+                write!(f, "Unable to connect to host: {}", url)
             }
-            ScrapeError::Non200Status(ref url, code) => {
+            ScrapeError::UnreadableHtml { ref url } => {
+                write!(f, "Issue parsing HTML from: {}", url)
+            }
+            ScrapeError::UnsupportedHost { ref url } => {
+                write!(f, "Cannot scrape unsupported host: {} ", url)
+            }
+            ScrapeError::CssNotFound { ref url, selector } => {
+                write!(f, "Selector \"{}\" found nothing from: {}", selector, url)
+            }
+            ScrapeError::Non200Status { ref url, code } => {
                 write!(f, "{} status code returned from {}", code, url)
             }
             _ => write!(f, "TODO"),
