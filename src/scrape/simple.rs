@@ -31,7 +31,7 @@ impl<'a> Fetch for Scraper<'a> {
 
         // download table of contents HTML
         let document = kuchiki::parse_html()
-            .one(web_util::get_html(self.url)?)
+            .one(web_util::get_html(self.url)?.as_string()?)
             .select(self.chapter_css_selector);
 
         // check if HTML can be parsed
