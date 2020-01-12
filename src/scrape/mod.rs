@@ -1,6 +1,6 @@
-mod simple;
+mod standard;
 use super::error::ScrapeError;
-pub use simple::Scraper;
+pub use standard::Scraper;
 
 pub trait Fetch {
     /// Update self with each chapter's url

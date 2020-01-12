@@ -1,6 +1,7 @@
 use crate::{error::ScrapeError, host, scrape::Fetch, web_util};
 use kuchiki;
 use kuchiki::traits::*;
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
 /// All the information needed to support a new website
@@ -71,13 +72,15 @@ impl<'a> Fetch for Scraper<'a> {
 }
 
 fn download_chapter(url: &str, css_selector: &str) -> Vec<Vec<u8>> {
-    // request chapter html
+    // fetch webpage HTML
     let document = kuchiki::parse_html()
         .one(web_util::get_html(url).unwrap().as_string().unwrap())
         .select(css_selector)
         .unwrap();
 
-    let mut chapter = vec![];
+    // parse HTML for each image URL
+    let mut image_urls = vec![];
+
     for css_match in document {
         let node = css_match.as_node();
         let img = node.as_element().unwrap().attributes.borrow();
@@ -88,9 +91,54 @@ fn download_chapter(url: &str, css_selector: &str) -> Vec<Vec<u8>> {
                 selector: css_selector,
             })
             .unwrap();
+        image_urls.push(src.to_string());
+    }
 
-        chapter.push(web_util::get_html(src).unwrap().as_bytes().unwrap());
+    // fetch each image
+    let mut chapter = vec![];
+
+    for url in image_urls {
+        chapter.push(web_util::get_html(&url).unwrap().as_bytes().unwrap());
     }
 
     chapter
 }
+
+// multi threading example
+/*
+    // fetch each image
+    let images = image_urls.len();
+    let mut chapter = vec![];
+    let (tx, rx): (mpsc::Sender<Vec<u8>>, mpsc::Receiver<Vec<u8>>) = mpsc::channel();
+
+    // multi threaded image scraping
+    let mut handlers = Vec::new();
+
+    while !image_urls.is_empty() {
+        let thread_tx = tx.clone();
+        let url = image_urls.pop().unwrap();
+
+        handlers.push(thread::spawn(move || {
+            thread_tx
+                .send(web_util::get_html(&url).unwrap().as_bytes().unwrap())
+                .unwrap();
+        }));
+    }
+
+    println!("collected images");
+
+    // collect data
+    for _ in 0..images {
+        chapter.push(rx.recv().unwrap());
+    }
+
+    println!("collected data");
+
+    // start threads
+    for handle in handlers {
+        handle.join().unwrap();
+        println!("collected threads");
+    }
+
+    chapter
+*/

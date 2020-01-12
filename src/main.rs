@@ -1,5 +1,7 @@
 use mangarip;
 use mangarip::Fetch;
+use std::sync::mpsc;
+use std::thread;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -18,7 +20,10 @@ fn main() {
     let args = Cli::from_args();
 
     let mut scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
-    let x = scraper.get_chapter(0).unwrap();
 
+    let x = scraper.get_chapter(0).unwrap();
+    println!("FINISHED");
+
+    let y = scraper.get_chapter(1).unwrap();
     println!("FINISHED");
 }
