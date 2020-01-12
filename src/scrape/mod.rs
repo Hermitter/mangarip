@@ -4,7 +4,7 @@ pub use simple::Scraper;
 
 pub trait Fetch {
     /// Update self with each chapter's url
-    fn scan_toc(&mut self) -> Result<(), ScrapeError>;
+    // fn scan_toc(&mut self) -> Result<(), ScrapeError>;
 
     /// Fetches each image and calls closure for each chapter scraped
     // fn for_each_chapter<F: Fn()>(&self, f: F) -> Result<Vec<Vec<u8>>, ScrapeError>;
