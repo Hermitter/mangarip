@@ -1,6 +1,15 @@
 use mangarip;
+use mangarip::Fetch;
 use std::path::PathBuf;
 use structopt::StructOpt;
+
+extern crate printpdf;
+
+// imports the `image` library with the exact version that we are using
+use printpdf::*;
+
+use std::convert::From;
+use std::fs::File;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "mangarip", about = "A web scraper tool for downloading manga")]
@@ -17,11 +26,11 @@ struct Cli {
 fn main() {
     let args = Cli::from_args();
 
-    let scraper = mangarip::Scraper::from(&args.url).unwrap();
-    let chapters = mangarip::Fetch::chapter_urls(&scraper);
+    let mut scraper = mangarip::Scraper::from(&args.url).unwrap();
+    scraper.scan_toc().unwrap();
+    scraper.get_chapter(0);
 
-    println!("{:?}", chapters);
-
-    // println!("{}", mangarip::X);
-    // mangarip::X //::request(&args.url);
+    // for chapter in chapters {
+    //     println!
+    // }
 }

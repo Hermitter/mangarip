@@ -4,6 +4,7 @@ use std::io;
 use surf;
 
 // consumable that returns Bytes or a String of a web page
+#[derive(Debug)]
 pub struct Html<'a> {
     response: surf::Response,
     url: &'a str,
@@ -22,8 +23,8 @@ impl<'a> Html<'a> {
 
     pub fn as_bytes(mut self) -> Result<Vec<u8>, ScrapeError<'a>> {
         task::block_on(async {
-            if let Ok(html) = self.response.body_bytes().await {
-                Ok(html)
+            if let Ok(bytes) = self.response.body_bytes().await {
+                Ok(bytes)
             } else {
                 Err(ScrapeError::UnreadableHtml { url: self.url })
             }

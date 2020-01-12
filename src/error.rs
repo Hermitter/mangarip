@@ -7,6 +7,8 @@ pub enum ScrapeError<'a> {
     UnreadableHtml { url: &'a str },
     CssNotFound { url: &'a str, selector: &'a str },
     Non200Status { url: &'a str, code: u16 },
+    UnknownError,
+    TocNotScanned,
 }
 
 impl<'a> Error for ScrapeError<'a> {}
@@ -26,22 +28,21 @@ impl<'a> fmt::Display for ScrapeError<'a> {
             ScrapeError::CssNotFound { ref url, selector } => {
                 write!(f, "Selector \"{}\" found nothing from: {}", selector, url)
             }
+            ScrapeError::TocNotScanned => {
+                write!(f, "Table of contents were not scanned for chapter URLs")
+            }
+
+            ScrapeError::UnknownError => write!(f, "Unable to determine issue"),
+
             ScrapeError::Non200Status { ref url, code } => {
                 write!(f, "{} status code returned from {}", code, url)
-            }
-            _ => write!(f, "TODO"),
+            } // _ => write!(f, "TODO"),
         }
     }
 }
 
-// Result<Select<Elements<Descendants>>
-// impl From<std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>>
-//     for Error
-// {
-//     fn from(e: <std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>>) -> Self {
-//         match e {
-//             <std::boxed::Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>> => ScrapeError::UnreadableHtml,
-//             _ => Error::InternalServerError,
-//         }
-//     }
-// }
+impl<'a> From<()> for ScrapeError<'a> {
+    fn from(_err: ()) -> Self {
+        ScrapeError::UnknownError
+    }
+}
