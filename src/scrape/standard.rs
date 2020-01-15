@@ -1,7 +1,7 @@
 use crate::{error::ScrapeError, host, scrape::Fetch, web_util};
 use kuchiki;
 use kuchiki::traits::*;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::mpsc;
 use std::thread;
 
 /// All the information needed to support a new website
@@ -24,7 +24,7 @@ pub struct Scraper<'a> {
 }
 
 impl<'a> Scraper<'a> {
-    /// Check if host is supported and return a Scrape with host's configuration
+    /// Check if host is supported and return a Scrape with host's configuration.
     pub fn from(url: &str) -> Result<Scraper, ScrapeError> {
         let mut scraper = host::find(url)?;
 
@@ -69,8 +69,26 @@ impl<'a> Fetch for Scraper<'a> {
             self.image_css_selector,
         ))
     }
+
+    fn get_chapters<F: Fn(u32)>(
+        &self,
+        start: u32,
+        finish: u32,
+        f: F,
+    ) -> Result<Vec<Vec<Vec<u8>>>, ScrapeError> {
+        let mut book = Vec::with_capacity(self.chapter_urls.len());
+        // let mut rt = Runtime::new().expect("Cannot create a runtime");
+
+        for i in start..finish {
+            book.push(self.get_chapter(i)?);
+            f(i);
+        }
+
+        Ok(book)
+    }
 }
 
+/// Return all images from a chapter.
 fn download_chapter(url: &str, css_selector: &str) -> Vec<Vec<u8>> {
     // fetch webpage HTML
     let document = kuchiki::parse_html()
@@ -103,42 +121,3 @@ fn download_chapter(url: &str, css_selector: &str) -> Vec<Vec<u8>> {
 
     chapter
 }
-
-// multi threading example
-/*
-    // fetch each image
-    let images = image_urls.len();
-    let mut chapter = vec![];
-    let (tx, rx): (mpsc::Sender<Vec<u8>>, mpsc::Receiver<Vec<u8>>) = mpsc::channel();
-
-    // multi threaded image scraping
-    let mut handlers = Vec::new();
-
-    while !image_urls.is_empty() {
-        let thread_tx = tx.clone();
-        let url = image_urls.pop().unwrap();
-
-        handlers.push(thread::spawn(move || {
-            thread_tx
-                .send(web_util::get_html(&url).unwrap().as_bytes().unwrap())
-                .unwrap();
-        }));
-    }
-
-    println!("collected images");
-
-    // collect data
-    for _ in 0..images {
-        chapter.push(rx.recv().unwrap());
-    }
-
-    println!("collected data");
-
-    // start threads
-    for handle in handlers {
-        handle.join().unwrap();
-        println!("collected threads");
-    }
-
-    chapter
-*/

@@ -7,9 +7,13 @@ pub trait Fetch {
     // fn scan_toc(&mut self) -> Result<(), ScrapeError>;
 
     /// Fetches each image and calls closure for each chapter scraped
-    // fn for_each_chapter<F: Fn()>(&self, f: F) -> Result<Vec<Vec<u8>>, ScrapeError>;
-
     fn get_chapter(&self, chapter_number: u32) -> Result<Vec<Vec<u8>>, ScrapeError>;
 
-    // fn chapters(&self) -> Result<Vec<String>, ScrapeError>;
+    /// Scrape chapters from start to finish. Calls closure on each successful scrape.
+    fn get_chapters<F: Fn(u32)>(
+        &self,
+        start: u32,
+        finish: u32,
+        f: F,
+    ) -> Result<Vec<Vec<Vec<u8>>>, ScrapeError>;
 }

@@ -19,11 +19,9 @@ struct Cli {
 fn main() {
     let args = Cli::from_args();
 
-    let mut scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
+    let scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
 
-    let x = scraper.get_chapter(0).unwrap();
-    println!("FINISHED");
-
-    let y = scraper.get_chapter(1).unwrap();
-    println!("FINISHED");
+    let x = scraper.get_chapters(0, scraper.chapter_urls.len() as u32, |i| {
+        println!("Chapter {} Finished", i);
+    });
 }
