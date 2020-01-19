@@ -20,8 +20,19 @@ fn main() {
     let args = Cli::from_args();
 
     let scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
+    scraper.get_chapter(0);
+    scraper.get_chapter(1);
+    scraper.get_chapter(2);
+    scraper.get_chapter(3);
+    scraper.get_chapter(4);
+    scraper.get_chapter(5);
+    scraper.get_chapter(6);
+    scraper.get_chapter(7);
+    // let x = scraper.get_chapter(2);
 
-    let x = scraper.get_chapters(0, scraper.chapter_urls.len() as u32, |i| {
-        println!("Chapter {} Finished", i);
-    });
+    // let x = scraper.get_chapters(0, 1, |i| {
+    //     println!("Chapter {} Finished", i);
+    // });
+
+    // println!("--> {:?}", x);
 }

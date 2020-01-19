@@ -1,5 +1,5 @@
 use crate::scrape::Scraper;
-use crate::ScrapeError;
+use crate::Error;
 use url::Url;
 
 #[derive(PartialEq, Debug)]
@@ -8,7 +8,7 @@ pub enum Sorting {
     Descending,
 }
 
-pub fn find(url: &str) -> Result<Scraper, ScrapeError> {
+pub fn find(url: &str) -> Result<Scraper, Error> {
     match Url::parse(url).unwrap().host_str().unwrap() {
         "mangakakalot.com" => Ok(Scraper {
             chapter_css_selector: ".chapter-list .row span a",
@@ -31,6 +31,6 @@ pub fn find(url: &str) -> Result<Scraper, ScrapeError> {
             url: url,
             chapter_urls: Vec::new(),
         }),
-        _ => Err(ScrapeError::UnsupportedHost { url }),
+        _ => Err(Error::UnsupportedHost { url }),
     }
 }
