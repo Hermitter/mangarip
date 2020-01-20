@@ -85,7 +85,7 @@ impl<'a> Scraper<'a> {
             image_urls.push(src.to_string());
         }
 
-        // downloads the image source
+        // async image source download
         async fn get_image(url: String) -> Result<Vec<u8>, Error> {
             web_util::get_html(&url).await?.as_bytes().await
         }
