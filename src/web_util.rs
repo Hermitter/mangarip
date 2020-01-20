@@ -14,7 +14,7 @@ impl<'a> Html<'a> {
             Ok(html)
         } else {
             Err(Error::UnreadableHtml {
-                url: self.url.to_string(),
+                url: self.url.to_owned(),
             })
         }
     }
@@ -24,7 +24,7 @@ impl<'a> Html<'a> {
             Ok(bytes)
         } else {
             Err(Error::UnreadableHtml {
-                url: self.url.to_string(),
+                url: self.url.to_owned(),
             })
         }
     }
@@ -37,7 +37,7 @@ pub async fn get_html(url: &str) -> Result<Html<'_>, Error> {
         // ensure 200 OK response
         if response.status() != 200 {
             return Err(Error::Non200Status {
-                url: url.to_string(),
+                url: url.to_owned(),
                 code: response.status().as_u16(),
             });
         }
@@ -47,6 +47,6 @@ pub async fn get_html(url: &str) -> Result<Html<'_>, Error> {
     }
 
     Err(Error::UnreachableHost {
-        url: url.to_string(),
+        url: url.to_owned(),
     })
 }

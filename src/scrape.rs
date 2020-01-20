@@ -37,7 +37,7 @@ impl<'a> Scraper<'a> {
         // check if HTML can be parsed
         if !document.is_ok() {
             return Err(Error::UnreadableHtml {
-                url: scraper.url.to_string(),
+                url: scraper.url.to_owned(),
             });
         }
 
@@ -46,11 +46,11 @@ impl<'a> Scraper<'a> {
             let node = css_match.as_node();
             let a = node.as_element().unwrap().attributes.borrow();
             let href = a.get("href").ok_or(Error::CssNotFound {
-                url: scraper.url.to_string(),
-                selector: scraper.chapter_css_selector.to_string(),
+                url: scraper.url.to_owned(),
+                selector: scraper.chapter_css_selector.to_owned(),
             });
 
-            urls.push(href?.to_string());
+            urls.push(href?.to_owned());
         }
 
         // convert descending list to ascending
@@ -78,11 +78,11 @@ impl<'a> Scraper<'a> {
             let img = node.as_element().unwrap().attributes.borrow();
 
             let src = img.get("src").ok_or(Error::CssNotFound {
-                url: chapter_url.to_string(),
+                url: chapter_url.to_owned(),
                 selector: img_css_select.to_string(),
             })?;
 
-            image_urls.push(src.to_string());
+            image_urls.push(src.to_owned());
         }
 
         // async image source download
@@ -111,7 +111,7 @@ impl<'a> Scraper<'a> {
 //             url,
 //             selector: css_selector,
 //         })?;
-//         image_urls.push(src.to_string());
+//         image_urls.push(src.to_owned());
 //     }
 
 //     // request each image

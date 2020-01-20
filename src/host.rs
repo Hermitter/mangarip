@@ -32,7 +32,7 @@ pub fn find(url: &str) -> Result<Scraper, Error> {
             chapter_urls: Vec::new(),
         }),
         _ => Err(Error::UnsupportedHost {
-            url: url.to_string(),
+            url: url.to_owned(),
         }),
     }
 }
