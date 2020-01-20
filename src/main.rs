@@ -1,8 +1,7 @@
+use futures::join;
 use mangarip;
-use mangarip::Fetch;
-use std::sync::mpsc;
-use std::thread;
 use structopt::StructOpt;
+use tokio::prelude::*;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "mangarip", about = "A web scraper tool for downloading manga")]
@@ -16,23 +15,17 @@ struct Cli {
     compile_into_book: bool, // store all images into a single directory (meant for PDF)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Cli::from_args();
 
-    let scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819").unwrap();
-    scraper.get_chapter(0);
-    scraper.get_chapter(1);
-    scraper.get_chapter(2);
-    scraper.get_chapter(3);
-    scraper.get_chapter(4);
-    scraper.get_chapter(5);
-    scraper.get_chapter(6);
-    scraper.get_chapter(7);
-    // let x = scraper.get_chapter(2);
+    let scraper = mangarip::Scraper::from("https://mangakakalot.com/manga/pj919819")
+        .await
+        .unwrap();
 
-    // let x = scraper.get_chapters(0, 1, |i| {
-    //     println!("Chapter {} Finished", i);
-    // });
+    let x = scraper.get_chapter(0);
+    let y = scraper.get_chapter(1);
+    let z = scraper.get_chapter(2);
 
-    // println!("--> {:?}", x);
+    join!(x, y, z);
 }

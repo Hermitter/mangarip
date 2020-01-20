@@ -13,6 +13,7 @@ surf = "1.0.3"
 async-std = "1.4.0"
 tokio = { version = "0.2.9", features = ["full"] }
 kuchiki = "0.8.0"
+futures = "0.3.1"
 
 [dev-dependencies]
 indicatif = "0.13.0"

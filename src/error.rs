@@ -1,28 +1,28 @@
 use std::{error::Error as StdError, fmt};
 
 #[derive(Debug)]
-pub enum Error<'a> {
+pub enum Error {
     /// Some unspecified error.
     Any(Box<dyn StdError + Send + Sync + 'static>),
     /// Unable to connect to host.
-    UnreachableHost { url: &'a str },
+    UnreachableHost { url: String },
     /// Host is not on supported list.
-    UnsupportedHost { url: &'a str },
+    UnsupportedHost { url: String },
     /// Could not parse HTML.
-    UnreadableHtml { url: &'a str },
+    UnreadableHtml { url: String },
     /// CSS selector returned nothing.
-    CssNotFound { url: &'a str, selector: &'a str },
+    CssNotFound { url: String, selector: String },
     /// Server did not respond with OK 200 status.
-    Non200Status { url: &'a str, code: u16 },
+    Non200Status { url: String, code: u16 },
     /// Error is not known
     UnknownError,
     /// The table of contents were not read before scraping.
     TocNotScanned,
 }
 
-impl<'a> fmt::Display for Error<'a> {
+impl<'a> fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Error::UnreachableHost { ref url } => write!(f, "Unable to connect to host: {}", url),
             Error::UnreadableHtml { ref url } => write!(f, "Issue parsing HTML from: {}", url),
             Error::UnsupportedHost { ref url } => {
@@ -45,7 +45,7 @@ impl<'a> fmt::Display for Error<'a> {
     }
 }
 
-impl<'a> From<()> for Error<'a> {
+impl<'a> From<()> for Error {
     fn from(_err: ()) -> Self {
         Error::UnknownError
     }

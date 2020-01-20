@@ -31,6 +31,8 @@ pub fn find(url: &str) -> Result<Scraper, Error> {
             url: url,
             chapter_urls: Vec::new(),
         }),
-        _ => Err(Error::UnsupportedHost { url }),
+        _ => Err(Error::UnsupportedHost {
+            url: url.to_string(),
+        }),
     }
 }
