@@ -1,4 +1,4 @@
-use std::{error::Error as StdError, fmt};
+use std::{error::Error as StdError, fmt, str::Utf8Error};
 
 #[derive(Debug)]
 pub enum Error {
@@ -18,6 +18,8 @@ pub enum Error {
     UnknownError,
     /// The table of contents were not read before scraping.
     TocNotScanned,
+    /// Encountered invalid UTF-8 in an HTML document.
+    InvalidUtf8 { url: String },
 }
 
 impl<'a> fmt::Display for Error {

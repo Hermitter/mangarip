@@ -18,8 +18,11 @@ pub struct Scraper<'a> {
     /// selector to each chapter url in the table of contents
     pub chapter_css_selector: &'a str,
 
-    /// selector to each image url in a chapter
-    pub image_css_selector: &'a str,
+    /// A regular expression for parsing image URLs from chapters.
+    ///
+    /// A bytes-oriented regex is used in order to defer UTF-8 verification to
+    /// the image's URL only. This saves verifying the entire document as UTF-8.
+    pub image_regex: regex::bytes::Regex,
 }
 
 impl<'a> Scraper<'a> {
@@ -64,29 +67,27 @@ impl<'a> Scraper<'a> {
 
     pub async fn get_chapter(&self, chapter_number: u32) -> Result<Vec<Vec<u8>>, Error> {
         let chapter_url = &self.chapter_urls[chapter_number as usize];
-        let img_css_select = &self.image_css_selector;
 
-        // fetch webpage HTML
-        let document = kuchiki::parse_html()
-            .one(web_util::get_html(chapter_url).await?.as_string().await?)
-            .select(img_css_select)?;
+        let html = web_util::get_html(chapter_url).await?.as_bytes().await?;
 
         // find each image URL in HTML
         let mut image_urls = vec![];
-        for css_match in document {
-            let node = css_match.as_node();
-            let img = node.as_element().unwrap().attributes.borrow();
-
-            let src = img.get("src").ok_or(Error::CssNotFound {
-                url: chapter_url.to_owned(),
-                selector: img_css_select.to_string(),
-            })?;
-
-            image_urls.push(src.to_owned());
+        for captures in self.image_regex.captures_iter(&html) {
+            // `capture.iter()` returns an iterator where the first element is
+            // the entire match. And its `Item` type is an `Option`, so we can
+            // ignore `None` cases by flattening the iterator.
+            for capture in captures.iter().skip(1).flatten() {
+                match std::str::from_utf8(capture.as_bytes()) {
+                    Ok(url) => image_urls.push(url),
+                    Err(_) => return Err(Error::InvalidUtf8 {
+                        url: self.url.to_owned()
+                    }),
+                }
+            }
         }
 
         // async image source download
-        async fn get_image(url: String) -> Result<Vec<u8>, Error> {
+        async fn get_image(url: &str) -> Result<Vec<u8>, Error> {
             web_util::get_html(&url).await?.as_bytes().await
         }
 
