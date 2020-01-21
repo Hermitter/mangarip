@@ -1,21 +1,23 @@
 use crate::{error::Error, host, web_util};
-use futures::future::{self, try_join_all};
+use futures::future::try_join_all;
 use kuchiki;
 use kuchiki::traits::*;
 
 /// All the information needed to support a new website
 #[derive(Debug)]
 pub struct Scraper<'a> {
-    /// url to the table of contents
+    /// The url to the table of contents
+    // This page contains a link to each chapter in the manga.
     pub url: &'a str,
 
-    /// urls to each chapter in the manga
+    /// A list of urls to each chapter in the manga
     pub chapter_urls: Vec<String>,
 
-    /// how the table of contents is sorted
+    /// Describes how the table of contents is sorted.
+    /// This will tell us if it's by newest or oldest first.
     pub chapter_sort: host::Sorting,
 
-    /// selector to each chapter url in the table of contents
+    /// A selector to each chapter url in the table of contents
     pub chapter_css_selector: &'a str,
 
     /// A regular expression for parsing image URLs from chapters.
@@ -26,7 +28,8 @@ pub struct Scraper<'a> {
 }
 
 impl<'a> Scraper<'a> {
-    /// Check if host is supported and return a Scrape with host's configuration.
+    /// Check if host is supported and return a Scraper that's configured for target host.
+    /// This will also scrape the table of contents to save the URL for each chapter.
     pub async fn from(url: &str) -> Result<Scraper<'_>, Error> {
         let mut scraper = host::find(url)?;
 
@@ -65,6 +68,7 @@ impl<'a> Scraper<'a> {
         Ok(scraper)
     }
 
+    /// Request each image from a chapter.
     pub async fn get_chapter(&self, chapter_number: u32) -> Result<Vec<Vec<u8>>, Error> {
         let chapter_url = &self.chapter_urls[chapter_number as usize];
 
@@ -79,9 +83,11 @@ impl<'a> Scraper<'a> {
             for capture in captures.iter().skip(1).flatten() {
                 match std::str::from_utf8(capture.as_bytes()) {
                     Ok(url) => image_urls.push(url),
-                    Err(_) => return Err(Error::InvalidUtf8 {
-                        url: self.url.to_owned()
-                    }),
+                    Err(_) => {
+                        return Err(Error::InvalidUtf8 {
+                            url: self.url.to_owned(),
+                        })
+                    }
                 }
             }
         }
@@ -94,34 +100,9 @@ impl<'a> Scraper<'a> {
         // wait for all images to download
         try_join_all(image_urls.into_iter().map(|x| get_image(x))).await
     }
+
+    /// Request a specific range of chapters.
+    pub async fn get_chapters(&self, start: u32, end: u32) -> Result<Vec<Vec<Vec<u8>>>, Error> {
+        Ok(vec![vec![vec![0]]])
+    }
 }
-
-// Return all images from a chapter.
-// fn download_chapter<'a>(url: &'a str, css_selector: &'a str) -> Result<Vec<Vec<u8>>, Error<'a>> {
-//     // fetch webpage HTML
-//     let document = kuchiki::parse_html()
-//         .one(web_util::get_html(url)?.as_string()?)
-//         .select(css_selector)?;
-
-//     // parse HTML for each image URL
-//     let mut image_urls = vec![];
-//     for css_match in document {
-//         let node = css_match.as_node();
-//         let img = node.as_element().unwrap().attributes.borrow();
-//         let src = img.get("src").ok_or(Error::CssNotFound {
-//             url,
-//             selector: css_selector,
-//         })?;
-//         image_urls.push(src.to_owned());
-//     }
-
-//     // request each image
-//     // let mut images = Vec::new();
-
-//     // for url in image_urls {
-//     //     println!("{}", url);
-//     //     handlers.push(tokio::spawn(async move { web_util::get_html(&url) }));
-//     // }
-
-//     Ok(vec![vec![0]])
-// }

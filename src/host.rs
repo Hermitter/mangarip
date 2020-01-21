@@ -17,9 +17,7 @@ pub fn find(url: &str) -> Result<Scraper, Error> {
     // - `/\d+`:        URL separator followed one or more digits (0-9)
     // - `\.`:          an escaped single dot
     // - `(?:jpg|png)`: a non-capture group (?:) with either "jpg" or "png"
-    let image_regex = regex::bytes::Regex::new(
-        r#"src *= *"([^"]+/\d+\.(?:jpg|png))""#
-    ).unwrap();
+    let image_regex = regex::bytes::Regex::new(r#"src *= *"([^"]+/\d+\.(?:jpg|png))""#).unwrap();
 
     match Url::parse(url).unwrap().host_str().unwrap() {
         "mangakakalot.com" => Ok(Scraper {
