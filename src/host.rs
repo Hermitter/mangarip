@@ -2,12 +2,15 @@ use crate::scrape::Scraper;
 use crate::Error;
 use url::Url;
 
+/// Describes how the table of contents is sorted.
+/// This will tell us if it's by newest or oldest first.
 #[derive(PartialEq, Debug)]
 pub enum Sorting {
     Ascending,
     Descending,
 }
 
+/// Returns a pre-made Scrapper for a supported website.
 pub fn find(url: &str) -> Result<Scraper, Error> {
     // Breakdown:
     // - `src`:         "src"
@@ -23,23 +26,26 @@ pub fn find(url: &str) -> Result<Scraper, Error> {
         "mangakakalot.com" => Ok(Scraper {
             chapter_css_selector: ".chapter-list .row span a",
             chapter_sort: Sorting::Descending,
-            url: url,
+            url,
             chapter_urls: Vec::new(),
             image_regex,
+            chapter_closure: None,
         }),
         "mangairo.com" => Ok(Scraper {
             chapter_css_selector: "",
             chapter_sort: Sorting::Ascending,
-            url: url,
+            url,
             chapter_urls: Vec::new(),
             image_regex,
+            chapter_closure: None,
         }),
         "manganelo.com" => Ok(Scraper {
             chapter_css_selector: "",
             chapter_sort: Sorting::Ascending,
-            url: url,
+            url,
             chapter_urls: Vec::new(),
             image_regex,
+            chapter_closure: None,
         }),
         _ => Err(Error::UnsupportedHost {
             url: url.to_owned(),
