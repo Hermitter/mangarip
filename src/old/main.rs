@@ -1,11 +1,8 @@
-use async_std::{io, prelude::*, task};
 use mangarip;
 use structopt::StructOpt;
 
 extern crate image;
-use image::GenericImageView;
 use tokio;
-use tokio::prelude::*;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "mangarip", about = "A web scraper tool for downloading manga")]
@@ -23,20 +20,9 @@ struct Cli {
 async fn main() {
     let args = Cli::from_args();
 
-    let scraper = mangarip::Scraper::from(&args.url).await.unwrap();
-    let chapter = scraper.get_chapter(0).await.unwrap();
-
-    let mut handlers = Vec::new();
-
-    for (i, page) in chapter.into_iter().enumerate() {
-        handlers.push(tokio::spawn(async move {
-            create_image(&page, &format!("./chapter/{}.png", i));
-        }));
-    }
-
-    for handle in handlers {
-        handle.await.unwrap();
-    }
+    println!("Hello World");
+    // let scraper = mangarip::Scraper::from(&args.url).await.unwrap();
+    // let chapter = scraper.get_chapter(0).await.unwrap();
 }
 
 fn create_image(buffer: &[u8], output: &str) {

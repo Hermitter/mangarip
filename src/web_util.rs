@@ -3,12 +3,12 @@ use surf;
 
 // consumable that returns Bytes or a String of a web page
 #[derive(Debug)]
-pub struct Html<'a> {
-    response: surf::Response,
-    url: &'a str,
+pub struct Html {
+    pub response: surf::Response,
+    pub url: String,
 }
 
-impl<'a> Html<'a> {
+impl Html {
     pub async fn as_string(mut self) -> Result<String, Error> {
         if let Ok(html) = self.response.body_string().await {
             Ok(html)
@@ -31,7 +31,7 @@ impl<'a> Html<'a> {
 }
 
 // Return an HTML string of the table of contents page
-pub async fn get_html(url: &str) -> Result<Html<'_>, Error> {
+pub async fn get_html(url: &str) -> Result<Html, Error> {
     // request web page
     if let Ok(response) = surf::get(url).await {
         // ensure 200 OK response
@@ -42,10 +42,14 @@ pub async fn get_html(url: &str) -> Result<Html<'_>, Error> {
             });
         }
 
-        // response can be consumed to return html as bytes or a string
-        return Ok(Html { response, url });
+        // return Html instance to later be turned into string or bytes
+        return Ok(Html {
+            response,
+            url: url.to_owned(),
+        });
     }
 
+    // unable to reach url
     Err(Error::UnreachableHost {
         url: url.to_owned(),
     })
