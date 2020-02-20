@@ -1,4 +1,4 @@
 mod error;
-pub mod web_util;
-
 pub use error::Error;
+pub mod scrape;
+pub mod url;
