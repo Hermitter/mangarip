@@ -48,7 +48,7 @@ fn html_to_string() {
 #[test]
 fn html_to_bytes() {
     task::block_on(async {
-        // TODO: test if bytes are correct
+        // TODO: test if bytes received are correct
         let bytes = Request::new()
             .attempts(10)
             .fetch_as_bytes("https://github.com/Hermitter/mangarip")
