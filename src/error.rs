@@ -20,12 +20,17 @@ pub enum Error {
     TocNotScanned,
     /// Encountered invalid UTF-8 in an HTML document.
     InvalidUtf8 { url: String },
+    /// Chapter does not exist.
+    InvalidChapter { index: u32 },
 }
 
 impl<'a> fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Error::UnreachableHost { ref url } => write!(f, "Unable to connect to host: {}", url),
+            Error::InvalidChapter { ref index } => {
+                write!(f, "Are you sure chapter {} exists?", index)
+            }
             Error::UnreadableHtml { ref url } => write!(f, "Issue parsing HTML from: {}", url),
             Error::UnsupportedHost { ref url } => {
                 write!(f, "Cannot scrape unsupported host: {} ", url)

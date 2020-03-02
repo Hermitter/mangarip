@@ -2,7 +2,6 @@ use async_std::task;
 use mangarip::url::*;
 use regex::Regex;
 
-/// Unreachable URL.
 #[test]
 #[should_panic]
 fn fetch_404_url() {
@@ -15,7 +14,6 @@ fn fetch_404_url() {
     });
 }
 
-/// Check if reachable URL returns 200 OK status.
 #[test]
 fn fetch_200_url() {
     task::block_on(async {

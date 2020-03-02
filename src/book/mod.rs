@@ -1,47 +1,44 @@
-use crate::{Selector, Sorting};
+mod host;
 mod toc;
+use crate::Error;
+pub use host::Host;
 use toc::TableOfContents;
 
-/// Information needed to support a new manga website.
 #[derive(Debug)]
-pub struct Host {
-    /// URL to host website.
-    pub url: String,
-    /// Describes how the chapter list is sorted.
-    pub toc_sorting: Sorting,
-    /// Selector for chapter url in the table of contents.
-    pub toc_selector: Selector,
-    /// Selector for each image url in a chapter.
-    pub page_selector: Selector,
+pub struct Chapter {
+    /// Each image from a chapter.
+    pages: Vec<Vec<u8>>,
 }
-
-#[derive(Debug)]
-pub struct Chapter {}
 
 #[derive(Debug)]
 pub struct Book {
-    /// The website that's hosting the manga.
-    host: Host,
+    /// Table of contents for a manga. This will
+    pub toc: TableOfContents,
 
-    /// Table of contents for a manga.
-    toc: TableOfContents,
+    /// Endpoint for all downloaded chapters.
+    pub chapters: Vec<Chapter>,
 }
 
-// /// All the information needed to support a new website
-// #[derive(Debug)]
-// pub struct Scraper {
-//     /// url to the table of contents
-//     pub url: String,
+impl Book {
+    /// Create an instance of Book with the table of contents already scanned.
+    pub async fn from(url: &str, host: &Host) -> Result<Book, Error> {
+        let mut book = Book {
+            toc: TableOfContents::new(url, host),
+            chapters: Vec::new(),
+        };
 
-//     /// urls to each chapter in the manga
-//     pub chapter_urls: Vec<String>,
+        book.toc.scan().await?;
+        Ok(book)
+    }
 
-//     /// how the table of contents is sorted
-//     pub chapter_sort: host::Sorting,
+    /// Download every image(page) for a specific chapter
+    pub async fn download_chapter(&self, index: u32) -> Result<Chapter, Error> {
+        if index > self.toc.chapter_urls.len() as u32 {
+            return Err(Error::InvalidChapter { index });
+        }
 
-//     /// selector to each chapter url in the table of contents
-//     pub chapter_css_selector: &'a str,
+        let mut chapter = Chapter { pages: Vec::new() };
 
-//     /// selector to each image url in a chapter
-//     pub image_css_selector: &'a str,
-// }
+        Ok(chapter)
+    }
+}
