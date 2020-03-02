@@ -9,7 +9,7 @@ pub struct Chapter {
     /// URL to a chapter.
     pub url: String,
     /// Each image from a chapter.
-    pub pages: Vec<Page>,
+    pub pages: Vec<RefCell<Page>>,
 }
 
 impl Chapter {
@@ -38,10 +38,10 @@ impl Chapter {
                     // ignore `None` cases by flattening the iterator.
                     for capture in captures.iter().skip(1).flatten() {
                         match std::str::from_utf8(capture.as_bytes()) {
-                            Ok(url) => self.pages.push(Page {
+                            Ok(url) => self.pages.push(RefCell::new(Page {
                                 url: url.to_owned(),
                                 content: Vec::new(),
-                            }),
+                            })),
                             Err(_) => {
                                 return Err(Error::InvalidUtf8 {
                                     url: self.url.to_owned(),

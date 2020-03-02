@@ -5,6 +5,7 @@ use crate::Error;
 pub use chapter::Chapter;
 use futures::future::try_join_all;
 pub use host::Host;
+use page::Page;
 use std::cell::RefCell;
 
 #[derive(Debug)]
@@ -27,19 +28,22 @@ impl<'a> Book<'a> {
         })
     }
 
-    pub async fn download_chapter(&mut self, index: i32) {
+    pub async fn download_chapter(&mut self, index: i32) -> Result<(), Error> {
         let chapter = &mut self.chapters[0];
         chapter.scan(&self.host.page_selector).await.unwrap();
 
-        // for page in chapter.pages.iter() {
-        //     println!("{:?}", page);
-        // }
-
-        for page in chapter.pages.split_at_mut() {
-            println!("--> {:?}", page[0]);
+        // function to download the page and update `Page.content` with it.
+        async fn get_image(page: &mut RefCell<Page>) -> Result<(), Error> {
+            page.borrow_mut().download().await
         }
 
-        // wait for all images to download
-        // try_join_all(chapter.pages.into_iter().map(|x| x.download())).await;
+        let mut futures = vec![];
+        for page in &mut chapter.pages {
+            futures.push(get_image(page));
+        }
+
+        try_join_all(futures).await?;
+
+        Ok(())
     }
 }

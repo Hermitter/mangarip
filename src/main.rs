@@ -17,6 +17,6 @@ fn main() {
         
         book.download_chapter(0).await;
 
-        println!("{:?}", book);
+        // println!("{:?}", book);
     });
 }
