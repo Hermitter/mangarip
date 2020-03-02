@@ -28,8 +28,8 @@ impl<'a> Book<'a> {
         })
     }
 
-    pub async fn download_chapter(&mut self, index: i32) -> Result<(), Error> {
-        let chapter = &mut self.chapters[0];
+    pub async fn download_chapter(&mut self, index: usize) -> Result<(), Error> {
+        let chapter = &mut self.chapters[index];
         chapter.scan(&self.host.page_selector).await.unwrap();
 
         // function to download the page and update `Page.content` with it.
