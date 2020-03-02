@@ -11,9 +11,11 @@ fn main() {
     };
 
     task::block_on(async {
-        let book = Book::from("https://manganelo.com/manga/fk922312", &manganelo)
+        let mut book = Book::from("https://manganelo.com/manga/fk922312", &manganelo)
             .await
             .unwrap();
+        
+        book.download_chapter(0).await;
 
         println!("{:?}", book);
     });

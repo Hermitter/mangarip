@@ -1,44 +1,45 @@
+mod chapter;
 mod host;
-mod toc;
+mod page;
 use crate::Error;
+pub use chapter::Chapter;
+use futures::future::try_join_all;
 pub use host::Host;
-use toc::TableOfContents;
+use std::cell::RefCell;
 
 #[derive(Debug)]
-pub struct Chapter {
-    /// Each image from a chapter.
-    pages: Vec<Vec<u8>>,
-}
-
-#[derive(Debug)]
-pub struct Book {
-    /// Table of contents for a manga. This will
-    pub toc: TableOfContents,
-
+pub struct Book<'a> {
+    /// Information needed to support a book's host site.
+    pub host: &'a Host,
+    /// URL to the table of contents of a manga.
+    pub url: String,
     /// Endpoint for all downloaded chapters.
     pub chapters: Vec<Chapter>,
 }
 
-impl Book {
-    /// Create an instance of Book with the table of contents already scanned.
-    pub async fn from(url: &str, host: &Host) -> Result<Book, Error> {
-        let mut book = Book {
-            toc: TableOfContents::new(url, host),
-            chapters: Vec::new(),
-        };
-
-        book.toc.scan().await?;
-        Ok(book)
+impl<'a> Book<'a> {
+    /// Create an instance of Book with the amount of chapters and
+    pub async fn from<'b>(url: &str, host: &'a Host) -> Result<Book<'a>, Error> {
+        Ok(Book {
+            host,
+            url: url.to_owned(),
+            chapters: host.scan(url).await?,
+        })
     }
 
-    /// Download every image(page) for a specific chapter
-    pub async fn download_chapter(&self, index: u32) -> Result<Chapter, Error> {
-        if index > self.toc.chapter_urls.len() as u32 {
-            return Err(Error::InvalidChapter { index });
+    pub async fn download_chapter(&mut self, index: i32) {
+        let chapter = &mut self.chapters[0];
+        chapter.scan(&self.host.page_selector).await.unwrap();
+
+        // for page in chapter.pages.iter() {
+        //     println!("{:?}", page);
+        // }
+
+        for page in chapter.pages.split_at_mut() {
+            println!("--> {:?}", page[0]);
         }
 
-        let mut chapter = Chapter { pages: Vec::new() };
-
-        Ok(chapter)
+        // wait for all images to download
+        // try_join_all(chapter.pages.into_iter().map(|x| x.download())).await;
     }
 }

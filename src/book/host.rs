@@ -1,4 +1,8 @@
-use crate::{Selector, Sorting};
+use super::{chapter::Chapter, page::Page};
+use crate::{url::Request, Error, Selector, Sorting};
+use kuchiki;
+use kuchiki::traits::*;
+use regex::Regex;
 
 /// Information needed to support a new manga website.
 #[derive(Debug)]
@@ -14,6 +18,60 @@ pub struct Host {
 }
 
 impl<'a> Host {
+    /// Populate chapter_urls with a url to each chapter.
+    pub async fn scan(&self, url: &str) -> Result<Vec<Chapter>, Error> {
+        let mut chapters = Vec::<Chapter>::new();
+
+        // fetch html to scan
+        let html = Request::new().attempts(3).fetch_as_string(&url).await?;
+
+        // populate chapter URLs with each chapter found
+        match &self.chapter_selector {
+            Selector::Css(pattern) => {
+                let document = kuchiki::parse_html().one(html).select(&pattern);
+
+                for css_match in document? {
+                    let node = css_match.as_node();
+                    let a = node.as_element().unwrap().attributes.borrow();
+                    let href = a.get("href").ok_or(Error::CssNotFound {
+                        url: url.to_owned(),
+                        selector: pattern.clone(),
+                    });
+
+                    chapters.push(Chapter {
+                        url: href?.to_owned(),
+                        pages: Vec::new(),
+                    });
+                }
+            }
+            Selector::Regex(_) => {
+                panic!("Regex Selector is not yet implemented for Table of Contents!")
+                // let regex = Regex::new(pattern).unwrap();
+                // for captures in regex.captures_iter(&html) {
+                //     // `capture.iter()` returns an iterator where the first element is
+                //     // the entire match. And its `Item` type is an `Option`, so we can
+                //     // ignore `None` cases by flattening the iterator.
+                //     for capture in captures.iter().skip(1).flatten() {
+                //         match std::str::from_utf8(capture.as_bytes()) {
+                //             Ok(url) => self.chapter_urls.push(url.to_owned()),
+                //             Err(_) => {
+                //                 return Err(Error::InvalidUtf8 {
+                //                     url: url.to_owned(),
+                //                 })
+                //             }
+                //         }
+                //     }
+                // }
+            }
+        }
+
+        if Sorting::Descending == self.toc_sorting {
+            chapters.reverse();
+        }
+
+        Ok(chapters)
+    }
+
     // Creates a new instance of Host with default values for generic sites.
     // pub fn default() -> Host {
     //     Host {

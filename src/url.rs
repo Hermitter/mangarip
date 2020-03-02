@@ -3,9 +3,10 @@ use async_std::task::sleep;
 use std::time::Duration;
 use surf;
 
+/// Handles downloading HTML or media from a URL.
 pub struct Request {
-    attempts: u16,
-    delay: u16,
+    pub attempts: u16,
+    pub delay: u16,
 }
 
 impl<'a> Request {

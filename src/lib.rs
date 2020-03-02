@@ -1,6 +1,7 @@
 mod error;
 pub use error::Error;
 pub mod book;
+use regex;
 pub mod url;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
