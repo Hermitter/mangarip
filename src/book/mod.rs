@@ -1,7 +1,7 @@
 mod chapter;
 mod host;
 mod page;
-use crate::Error;
+use crate::{Error, Selector};
 pub use chapter::Chapter;
 use futures::future::try_join_all;
 pub use host::Host;
@@ -15,11 +15,11 @@ pub struct Book<'a> {
     /// URL to the table of contents of a manga.
     pub url: String,
     /// Endpoint for all downloaded chapters.
-    pub chapters: Vec<Chapter>,
+    pub chapters: Vec<RefCell<Chapter>>,
 }
 
 impl<'a> Book<'a> {
-    /// Create an instance of Book with the amount of chapters and
+    /// Create an instance of `Book` with a url to each chapter.
     pub async fn from<'b>(url: &str, host: &'a Host) -> Result<Book<'a>, Error> {
         Ok(Book {
             host,
@@ -28,22 +28,40 @@ impl<'a> Book<'a> {
         })
     }
 
+    /// Populate each `Page` for a specific `Chapter`.
     pub async fn download_chapter(&mut self, index: usize) -> Result<(), Error> {
-        let chapter = &mut self.chapters[index];
-        chapter.scan(&self.host.page_selector).await.unwrap();
+        self.chapters[index]
+            .borrow_mut()
+            .download(&self.host.page_selector)
+            .await?;
 
-        // function to download the page and update `Page.content` with it.
-        async fn get_image(page: &mut RefCell<Page>) -> Result<(), Error> {
-            page.borrow_mut().download().await
+        Ok(())
+    }
+
+    /// Populate each `Page` for a range of `Chapter`s.
+    pub async fn download_chapters(&mut self, start: u32, end: u32) -> Result<(), Error> {
+        // function to download the images of a chapter
+        async fn get_chapter(chapter: &RefCell<Chapter>, selector: &Selector) -> Result<(), Error> {
+            chapter.borrow_mut().download(selector).await
         }
 
         let mut futures = vec![];
-        for page in &mut chapter.pages {
-            futures.push(get_image(page));
+        for i in start..end {
+            futures.push(get_chapter(
+                &self.chapters[i as usize],
+                &self.host.page_selector,
+            ));
         }
 
         try_join_all(futures).await?;
 
+        Ok(())
+    }
+
+    /// Populate each `Page` of every `Chapter` in a `Book`.
+    pub async fn download_all_chapters(&mut self) -> Result<(), Error> {
+        self.download_chapters(0, (self.chapters.len() - 1) as u32)
+            .await?;
         Ok(())
     }
 }

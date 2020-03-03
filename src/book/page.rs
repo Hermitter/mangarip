@@ -10,6 +10,7 @@ pub struct Page {
 }
 
 impl Page {
+    /// Populate `Page.content` with image found in `Page.url`
     pub async fn download(&mut self) -> Result<(), Error> {
         self.content = Request::new()
             .attempts(10)

@@ -1,8 +1,9 @@
-use super::{chapter::Chapter, page::Page};
+use super::chapter::Chapter;
 use crate::{url::Request, Error, Selector, Sorting};
 use kuchiki;
 use kuchiki::traits::*;
 use regex::Regex;
+use std::cell::RefCell;
 
 /// Information needed to support a new manga website.
 #[derive(Debug)]
@@ -19,8 +20,8 @@ pub struct Host {
 
 impl<'a> Host {
     /// Populate chapter_urls with a url to each chapter.
-    pub async fn scan(&self, url: &str) -> Result<Vec<Chapter>, Error> {
-        let mut chapters = Vec::<Chapter>::new();
+    pub async fn scan(&self, url: &str) -> Result<Vec<RefCell<Chapter>>, Error> {
+        let mut chapters = Vec::new();
 
         // fetch html to scan
         let html = Request::new().attempts(3).fetch_as_string(&url).await?;
@@ -38,10 +39,10 @@ impl<'a> Host {
                         selector: pattern.clone(),
                     });
 
-                    chapters.push(Chapter {
+                    chapters.push(RefCell::new(Chapter {
                         url: href?.to_owned(),
                         pages: Vec::new(),
-                    });
+                    }));
                 }
             }
             Selector::Regex(_) => {
@@ -71,14 +72,4 @@ impl<'a> Host {
 
         Ok(chapters)
     }
-
-    // Creates a new instance of Host with default values for generic sites.
-    // pub fn default() -> Host {
-    //     Host {
-    //         toc_sorting: Sorting::Descending,
-    //         chapter_selector: Selector::Regex("".to_owned()),
-    //         page_selector: Selector::Regex(r#"src *= *"([^"]+/\d+\.(?:jpg|png))""#.to_owned()),
-    //         chapter_url_append: "".to_owned(),
-    //     }
-    // }
 }

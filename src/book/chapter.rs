@@ -1,6 +1,7 @@
 use super::page::Page;
 use crate::url::Request;
 use crate::{Error, Selector};
+use futures::future::try_join_all;
 use std::cell::RefCell;
 
 /// Contains every page(image) of a specific chapter.
@@ -52,6 +53,24 @@ impl Chapter {
                 }
             }
         }
+
+        Ok(())
+    }
+
+    pub async fn download(&mut self, selector: &Selector) -> Result<(), Error> {
+        self.scan(selector).await.unwrap();
+
+        // function to download the page and update `Page.content` with it.
+        async fn get_image(page: &mut RefCell<Page>) -> Result<(), Error> {
+            page.borrow_mut().download().await
+        }
+
+        let mut futures = vec![];
+        for page in &mut self.pages {
+            futures.push(get_image(page));
+        }
+
+        try_join_all(futures).await?;
 
         Ok(())
     }
