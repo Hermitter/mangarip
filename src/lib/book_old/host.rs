@@ -1,9 +1,8 @@
 use super::chapter::Chapter;
-use crate::{url::Request, Error, Selector, Sorting};
+use crate::lib::{web::Request, Error, Selector, Sorting};
 use kuchiki;
 use kuchiki::traits::*;
 use regex::Regex;
-use std::cell::RefCell;
 
 /// Information needed to support a new manga website.
 #[derive(Debug)]
@@ -13,17 +12,16 @@ pub struct Host {
     /// Selector for each chapter url in the table of contents.
     pub chapter_selector: Selector,
     /// Selector for each image url in a chapter.
-    pub page_selector: Selector,
-    /// String to append at the end of a chapter's URL.
+    pub image_selector: Selector,
+    /// String to append at the end of each chapter's URL. This meant for sites that
+    /// require a specific path to load each image at once.
     pub chapter_url_append: String,
 }
 
 impl<'a> Host {
-    /// Populate chapter_urls with a url to each chapter.
-    pub async fn scan(&self, url: &str) -> Result<Vec<RefCell<Chapter>>, Error> {
+    /// Return the url of each chapter in the table of contents
+    pub async fn scan(&self, url: &str) -> Result<Vec<Chapter>, Error> {
         let mut chapters = Vec::new();
-
-        // fetch html to scan
         let html = Request::new().attempts(3).fetch_as_string(&url).await?;
 
         // populate chapter URLs with each chapter found
@@ -37,15 +35,15 @@ impl<'a> Host {
                     let href = a.get("href").ok_or(Error::CssNotFound {
                         url: url.to_owned(),
                         selector: pattern.clone(),
-                    });
+                    })?;
 
-                    chapters.push(RefCell::new(Chapter {
-                        url: href?.to_owned(),
+                    chapters.push(Chapter {
+                        url: href.to_owned(),
                         pages: Vec::new(),
-                    }));
+                    });
                 }
             }
-            Selector::Regex(_) => {
+            Selector::Regex(_pattern) => {
                 panic!("Regex Selector is not yet implemented for Table of Contents!")
                 // let regex = Regex::new(pattern).unwrap();
                 // for captures in regex.captures_iter(&html) {

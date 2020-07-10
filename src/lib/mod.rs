@@ -1,8 +1,7 @@
 mod error;
 pub use error::Error;
 pub mod book;
-use regex;
-pub mod url;
+pub mod web;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Sorting {

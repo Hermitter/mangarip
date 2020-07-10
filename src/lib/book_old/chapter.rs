@@ -1,8 +1,7 @@
 use super::page::Page;
-use crate::url::Request;
-use crate::{Error, Selector};
+use crate::lib::web::Request;
+use crate::lib::{Error, Selector};
 use futures::future::try_join_all;
-use std::cell::RefCell;
 
 /// Contains every page(image) of a specific chapter.
 #[derive(Debug)]
@@ -10,7 +9,7 @@ pub struct Chapter {
     /// URL to a chapter.
     pub url: String,
     /// Each image from a chapter.
-    pub pages: Vec<RefCell<Page>>,
+    pub pages: Vec<Page>,
 }
 
 impl Chapter {
@@ -39,10 +38,10 @@ impl Chapter {
                     // ignore `None` cases by flattening the iterator.
                     for capture in captures.iter().skip(1).flatten() {
                         match std::str::from_utf8(capture.as_bytes()) {
-                            Ok(url) => self.pages.push(RefCell::new(Page {
+                            Ok(url) => self.pages.push(Page {
                                 url: url.to_owned(),
                                 content: Vec::new(),
-                            })),
+                            }),
                             Err(_) => {
                                 return Err(Error::InvalidUtf8 {
                                     url: self.url.to_owned(),
@@ -57,21 +56,21 @@ impl Chapter {
         Ok(())
     }
 
-    pub async fn download(&mut self, selector: &Selector) -> Result<(), Error> {
-        self.scan(selector).await.unwrap();
+    // pub async fn download(&mut self, selector: &Selector) -> Result<(), Error> {
+    //     self.scan(selector).await.unwrap();
 
-        // function to download the page and update `Page.content` with it.
-        async fn get_image(page: &mut RefCell<Page>) -> Result<(), Error> {
-            page.borrow_mut().download().await
-        }
+    //     // function to download the page and update `Page.content` with it.
+    //     async fn get_image(page: &Page) -> Result<(), Error> {
+    //         page.download().await
+    //     }
 
-        let mut futures = vec![];
-        for page in &mut self.pages {
-            futures.push(get_image(page));
-        }
+    //     let mut futures = vec![];
+    //     for page in &mut self.pages {
+    //         futures.push(get_image(page));
+    //     }
 
-        try_join_all(futures).await?;
+    //     try_join_all(futures).await?;
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

@@ -1,4 +1,4 @@
-use crate::{url::Request, Error};
+use crate::lib::{web::Request, Error};
 
 /// Represents a single page(image) of a chapter.
 #[derive(Debug)]
@@ -11,13 +11,11 @@ pub struct Page {
 
 impl Page {
     /// Populate `Page.content` with image found in `Page.url`
-    pub async fn download(&mut self) -> Result<(), Error> {
-        self.content = Request::new()
+    pub async fn download(&self) -> Result<Vec<u8>, Error> {
+        Request::new()
             .attempts(10)
             .delay(3)
             .fetch_as_bytes(&self.url)
-            .await?;
-
-        Ok(())
+            .await
     }
 }

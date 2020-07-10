@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::lib::error::Error;
 use async_std::task::sleep;
 use std::time::Duration;
 use surf;
