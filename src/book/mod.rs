@@ -30,17 +30,23 @@ pub struct Book<'a> {
 }
 
 impl<'a> Book<'a> {
-    /// Create a book with a url to each chapter from the host site.
-    pub async fn new<'b>(url: &str, host: &'a Host<'_>) -> Result<Book<'a>, Error> {
-        Ok(Book {
+    /// Create a book to store information on chapters and their images.
+    pub fn new<'b>(url: &str, host: &'a Host<'_>) -> Book<'a> {
+        Book {
             host,
             url: url.to_owned(),
-            chapters: host.get_chapters(url).await?,
-        })
+            chapters: vec![],
+        }
     }
 
-    /// Populate each chapter with the URL to every image inside.
-    pub async fn scan(&mut self) {
+    /// Update the URL for each chapter found in the Host's table of contents.
+    pub async fn scan_chapters<'b>(mut self) -> Result<Book<'a>, Error> {
+        self.chapters = self.host.get_chapters(&self.url).await?;
+        Ok(self)
+    }
+
+    /// Populate each chapter with a URL to each image it contains.
+    pub async fn scan_images(mut self) -> Book<'a> {
         let mut futures = Vec::new();
 
         for chapter in self.chapters.iter_mut() {
@@ -48,5 +54,7 @@ impl<'a> Book<'a> {
         }
 
         join_all(futures).await;
+
+        self
     }
 }

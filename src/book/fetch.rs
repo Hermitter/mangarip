@@ -1,7 +1,7 @@
 use crate::error::Error;
+use async_std::task::sleep;
 use std::time::Duration;
 use surf;
-use tokio::time::sleep;
 
 /// Handles downloading HTML or media from a URL. By default, it will download the HTML string of a web page.
 #[derive(Debug)]
