@@ -25,7 +25,7 @@ pub struct Book<'a> {
     pub host: &'a Host<'a>,
     /// URL to the table of contents of a manga.
     pub url: String,
-    // /// Each chapter of a manga.
+    /// Each chapter of a manga.
     pub chapters: Vec<Chapter>,
 }
 
