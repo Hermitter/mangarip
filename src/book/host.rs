@@ -1,26 +1,29 @@
-use super::super::{web::Request, Error, Selector, Sorting};
 use super::chapter::Chapter;
+use super::fetch::Fetch;
+use super::{Selector, Sorting};
+use crate::Error;
 use kuchiki::traits::*;
+use url::Url;
 
 /// Information needed to support a new manga website.
 #[derive(Debug)]
-pub struct Host {
-    /// Describes how the chapter list is sorted in the table of contents.
+pub struct Host<'a> {
+    /// Table of contents sorting style
     pub toc_sorting: Sorting,
-    /// Selector for each chapter url in the table of contents.
+    /// Selector for finding chapter urls in the table of contents.
     pub chapter_selector: Selector,
     /// Selector for each image url in a chapter.
     pub image_selector: Selector,
-    /// String to append at the end of each chapter's URL. This meant for sites that
+    /// String to append at the end of each chapter's URL. Some sites require
     /// require a specific path to load each image at once.
-    pub chapter_url_append: Option<String>,
+    pub chapter_url_append: Option<&'a str>,
 }
 
-impl Host {
+impl<'a> Host<'a> {
     /// Return the url of each chapter in the table of contents
     pub async fn get_chapters(&self, url: &str) -> Result<Vec<Chapter>, Error> {
         let mut chapters = Vec::new();
-        let html = Request::new().attempts(3).fetch_as_string(&url).await?;
+        let html = Fetch::new().attempts(5).request_html(&url).await?;
 
         // populate chapter URLs with each chapter found
         match &self.chapter_selector {
@@ -31,7 +34,7 @@ impl Host {
                     let node = css_match.as_node();
                     let a = node.as_element().unwrap().attributes.borrow();
                     let href = a.get("href").ok_or(Error::CssNotFound {
-                        url: url.to_owned(),
+                        url: format!("{}{}", url, &self.chapter_url_append.unwrap_or("")),
                         selector: pattern.clone(),
                     })?;
 
@@ -42,6 +45,7 @@ impl Host {
                 }
             }
             Selector::Regex(_pattern) => {
+                // TODO: Add regex support
                 panic!("Regex Selector is not yet implemented for Table of Contents!")
             }
         }
@@ -51,5 +55,21 @@ impl Host {
         }
 
         Ok(chapters)
+    }
+
+    // Attempt to find a supported host from a valid URL.
+    pub fn find_host(url: &str) -> Option<Host> {
+        // todo handle url errors
+        match Url::parse(url).unwrap().host_str().unwrap() {
+            "manganelo.com" => Some(Host {
+                toc_sorting: Sorting::Descending,
+                chapter_selector: Selector::Css(".row-content-chapter li a".to_owned()),
+                image_selector: Selector::Regex(r#"src *= *"([^"]+/\d+\.(?:jpg|png))""#.to_owned()),
+                chapter_url_append: None,
+            }),
+            _ => None,
+        }
+
+        // todo!() // TODO
     }
 }

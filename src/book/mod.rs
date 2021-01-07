@@ -1,23 +1,37 @@
 pub mod chapter;
-pub mod host;
-use crate::lib::Error;
 use chapter::Chapter;
+mod fetch;
+mod host;
+use crate::Error;
 use futures::future::join_all;
-use host::Host;
+pub use host::Host;
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum Selector {
+    Regex(String),
+    Css(String),
+}
+
+/// Describes how a numbered list is sorted.
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum Sorting {
+    Ascending,
+    Descending,
+}
 
 #[derive(Debug)]
 pub struct Book<'a> {
-    /// Information needed to support the site a book is hosted on.
-    pub host: &'a Host,
+    /// Information needed to support the site that's hosting the book.
+    pub host: &'a Host<'a>,
     /// URL to the table of contents of a manga.
     pub url: String,
-    /// Each chapter of a manga.
+    // /// Each chapter of a manga.
     pub chapters: Vec<Chapter>,
 }
 
 impl<'a> Book<'a> {
     /// Create a book with a url to each chapter from the host site.
-    pub async fn new<'b>(url: &str, host: &'a Host) -> Result<Book<'a>, Error> {
+    pub async fn new<'b>(url: &str, host: &'a Host<'_>) -> Result<Book<'a>, Error> {
         Ok(Book {
             host,
             url: url.to_owned(),

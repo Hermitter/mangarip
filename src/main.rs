@@ -1,31 +1,17 @@
-mod lib;
-use lib::book::{host::Host, *};
-use lib::{Selector, Sorting};
-use std::sync::{Arc, Mutex};
-
-extern crate image;
-use tokio;
-
+use mangarip::book::{Book, Host};
 use std::time::Instant;
+use tokio;
 
 #[tokio::main]
 async fn main() {
-    let now = Instant::now();
+    let timer = Instant::now();
 
-    // Mangaelo
-    let manganelo_com = Host {
-        toc_sorting: Sorting::Descending,
-        chapter_selector: Selector::Css(".row-content-chapter li a".to_owned()),
-        image_selector: Selector::Regex(r#"src *= *"([^"]+/\d+\.(?:jpg|png))""#.to_owned()),
-        chapter_url_append: None,
-    };
-
-    let mut book = Book::new("https://manganelo.com/manga/pj919819", &manganelo_com)
-        .await
-        .unwrap();
-
+    let url = "https://manganelo.com/manga/un921372";
+    let host = Host::find_host(url).unwrap();
+    let mut book = Book::new(url, &host).await.unwrap();
     book.scan().await;
 
-    println!("{:#?}", book.chapters);
-    println!("Created Images -> {:#?}", now.elapsed());
+    let timer = timer.elapsed();
+    println!("{:#?}", book);
+    println!("Time: {:#?}", timer);
 }

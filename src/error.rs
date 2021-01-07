@@ -1,4 +1,5 @@
-use std::{error::Error as StdError, fmt, str::Utf8Error};
+use std::{error::Error as StdError, fmt};
+use surf;
 
 #[derive(Debug)]
 pub enum Error {
@@ -14,14 +15,16 @@ pub enum Error {
     CssNotFound { url: String, selector: String },
     /// Server did not respond with OK 200 status.
     Non200Status { url: String, code: u16 },
-    /// Error is not known
-    UnknownError,
     /// The table of contents were not read before scraping.
     TocNotScanned,
+    /// Error is not known
+    UnknownError,
     /// Encountered invalid UTF-8 in an HTML document.
     InvalidUtf8 { url: String },
     /// Chapter does not exist.
     InvalidChapter { index: u32 },
+    /// Surf crate error
+    SurfError { err: surf::Error },
 }
 
 impl<'a> fmt::Display for Error {
@@ -35,6 +38,7 @@ impl<'a> fmt::Display for Error {
             Error::UnsupportedHost { ref url } => {
                 write!(f, "Cannot scrape unsupported host: {} ", url)
             }
+            Error::UnknownError => write!(f, "Unable to determine issue"),
             Error::CssNotFound { ref url, selector } => {
                 write!(f, "Selector \"{}\" found nothing from: {}", selector, url)
             }
@@ -42,10 +46,11 @@ impl<'a> fmt::Display for Error {
                 write!(f, "Table of contents were not scanned for chapter URLs")
             }
 
-            Error::UnknownError => write!(f, "Unable to determine issue"),
-
             Error::Non200Status { ref url, code } => {
                 write!(f, "{} status code returned from {}", code, url)
+            }
+            Error::SurfError { ref err } => {
+                write!(f, "{}", err.to_string())
             }
             _ => write!(f, "TODO"),
         }
@@ -55,5 +60,11 @@ impl<'a> fmt::Display for Error {
 impl<'a> From<()> for Error {
     fn from(_err: ()) -> Self {
         Error::UnknownError
+    }
+}
+
+impl<'a> From<surf::Error> for Error {
+    fn from(err: surf::Error) -> Self {
+        Error::SurfError { err }
     }
 }

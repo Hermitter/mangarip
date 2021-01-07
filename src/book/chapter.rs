@@ -1,6 +1,6 @@
-use crate::lib::web::Request;
-use crate::lib::Error;
-use crate::lib::{Selector, Sorting};
+use super::fetch::Fetch;
+use super::Selector;
+use crate::Error;
 /// Representation of a manga chapter.
 #[derive(Debug)]
 pub struct Chapter {
@@ -11,22 +11,23 @@ pub struct Chapter {
 }
 
 impl Chapter {
-    /// Populates each page with a url to it.
+    /// Populates each chapter with a url to each image.
     pub async fn get_image_urls(&mut self, selector: &Selector) -> Result<(), Error> {
         if !self.image_urls.is_empty() {
             return Ok(());
         }
 
         match selector {
-            Selector::Css(pattern) => {
+            Selector::Css(_pattern) => {
+                // TODO: add css support
                 panic!("CSS Selector is not yet implemented for Chapter pages");
             }
             Selector::Regex(pattern) => {
                 let pattern = regex::bytes::Regex::new(pattern).unwrap();
-                let html = Request::new()
+                let html = Fetch::new()
                     .attempts(5)
                     .delay(1)
-                    .fetch_as_bytes(&self.url)
+                    .request_bytes(&self.url)
                     .await?;
 
                 for captures in pattern.captures_iter(&html) {
