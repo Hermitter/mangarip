@@ -8,7 +8,7 @@ use url::Url;
 /// Information needed to support a new manga website.
 #[derive(Debug)]
 pub struct Host<'a> {
-    /// Table of contents sorting style
+    /// Sorting for table of contents.
     pub toc_sorting: Sorting,
     /// Selector for finding chapter urls in the table of contents.
     pub chapter_selector: Selector,
