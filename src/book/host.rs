@@ -57,10 +57,9 @@ impl<'a> Host<'a> {
         Ok(chapters)
     }
 
-    // Attempt to find a supported host from a valid URL.
+    /// Returns a [Host](Host) from a valid URL it's already supported.
     pub fn find_host(url: &str) -> Option<Host> {
-        // todo handle url errors
-        match Url::parse(url).unwrap().host_str().unwrap() {
+        match Url::parse(url).ok()?.host_str()? {
             "manganelo.com" => Some(Host {
                 toc_sorting: Sorting::Descending,
                 chapter_selector: Selector::Css(".row-content-chapter li a".to_owned()),
@@ -69,7 +68,5 @@ impl<'a> Host<'a> {
             }),
             _ => None,
         }
-
-        // todo!() // TODO
     }
 }
