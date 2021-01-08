@@ -50,6 +50,7 @@ impl<'a> Book<'a> {
         let mut futures = Vec::new();
 
         for chapter in self.chapters.iter_mut() {
+            // TODO: set chapter vec to be Option<Vec<String>> so that errors can be scanned for.
             futures.push(chapter.get_image_urls(&self.host.image_selector));
         }
 
