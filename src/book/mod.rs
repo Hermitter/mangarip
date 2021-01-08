@@ -3,8 +3,9 @@ use chapter::Chapter;
 mod fetch;
 mod host;
 use crate::Error;
-use futures::future::join_all;
 pub use host::Host;
+use std::sync::Arc;
+use tokio::task::spawn;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Selector {
@@ -39,22 +40,29 @@ impl<'a> Book<'a> {
         }
     }
 
-    /// Update the URL for each chapter found in the Host's table of contents.
+    /// Find every available chapter for the current book.
     pub async fn scan_chapters<'b>(mut self) -> Result<Book<'a>, Error> {
         self.chapters = self.host.get_chapters(&self.url).await?;
         Ok(self)
     }
 
-    /// Populate each chapter with a URL to each image it contains.
+    /// Find every available image for each chapter.
     pub async fn scan_images(mut self) -> Book<'a> {
-        let mut futures = Vec::new();
+        let selector = Arc::new(self.host.image_selector.clone());
+        let mut handles = vec![];
 
-        for chapter in self.chapters.iter_mut() {
-            // TODO: set chapter vec to be Option<Vec<String>> so that errors can be scanned for.
-            futures.push(chapter.get_image_urls(&self.host.image_selector));
+        for chapter in self.chapters.into_iter() {
+            let selector_arc = selector.clone();
+
+            handles.push(spawn(async move {
+                chapter.scan_images(&selector_arc).await.unwrap()
+            }));
         }
 
-        join_all(futures).await;
+        self.chapters = vec![];
+        for handle in handles {
+            handle.await.unwrap();
+        }
 
         self
     }

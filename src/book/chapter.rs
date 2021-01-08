@@ -12,9 +12,9 @@ pub struct Chapter {
 
 impl Chapter {
     /// Populates each chapter with a url to each image.
-    pub async fn get_image_urls(&mut self, selector: &Selector) -> Result<(), Error> {
+    pub async fn scan_images(mut self, selector: &Selector) -> Result<Chapter, Error> {
         if !self.image_urls.is_empty() {
-            return Ok(());
+            return Ok(self);
         }
 
         match selector {
@@ -48,6 +48,6 @@ impl Chapter {
             }
         }
 
-        Ok(())
+        Ok(self)
     }
 }

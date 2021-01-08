@@ -10,5 +10,4 @@ surf = "2.1.0"
 # TODO: remove unused tokio features
 tokio = { version = "1", features = ["full"] }
 kuchiki = "0.8.1"
-futures = "0.3"
 regex = "1.4"
