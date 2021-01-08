@@ -5,8 +5,8 @@ use std::time::Instant;
 async fn main() {
     let timer = Instant::now();
 
-    // let url = "https://manganelo.com/manga/un921372"; // < 30 chapters
-    let url = "https://manganelo.com/manga/komisan_wa_komyushou_desu"; // 200+ chapters
+    let url = "https://manganelo.com/manga/un921372"; // < 30 chapters
+                                                      // let url = "https://manganelo.com/manga/komisan_wa_komyushou_desu"; // 200+ chapters
 
     let host = Host::find_host(url).unwrap();
     let book = Book::new(url, &host)

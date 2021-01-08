@@ -50,18 +50,21 @@ impl<'a> Book<'a> {
     pub async fn scan_images(mut self) -> Book<'a> {
         let selector = Arc::new(self.host.image_selector.clone());
         let mut handles = vec![];
+        let num_of_chapters = self.chapters.len();
 
         for chapter in self.chapters.into_iter() {
             let selector_arc = selector.clone();
 
             handles.push(spawn(async move {
-                chapter.scan_images(&selector_arc).await.unwrap()
+                chapter.scan_images(&selector_arc).await.unwrap() // TODO handle errors
             }));
         }
 
-        self.chapters = vec![];
+        self.chapters = Vec::new();
+        self.chapters.reserve(num_of_chapters);
+
         for handle in handles {
-            handle.await.unwrap();
+            self.chapters.push(handle.await.unwrap());
         }
 
         self
